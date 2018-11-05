@@ -1,0 +1,90 @@
+apply plugin: 'com.android.application'
+apply plugin: 'maven-publish'
+
+
+
+android {
+
+    defaultConfig {
+        applicationId "ru.home.test"
+        targetSdkVersion 27
+        compileSdkVersion 27
+        // Speed up gradle build
+        if (gradle.startParameter.taskNames.contains("Debug")) {
+            minSdkVersion 21
+        }else{
+            minSdkVersion 16
+        }
+        multiDexEnabled true
+        versionCode 1
+        versionName ""
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            versionNameSuffix "d"
+
+            applicationIdSuffix '.debug'
+        }
+        beta {
+            versionNameSuffix "sn"
+            minifyEnabled false
+            useProguard false
+            shrinkResources false
+            applicationIdSuffix '.beta'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            versionNameSuffix "r"
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    flavorDimensions "version"
+
+    productFlavors {
+
+        development {
+            dimension "version"
+        }
+        publication {
+            dimension "version"
+        }
+    }
+
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def project = APP_NAME
+            def buildType = variant.variantData.variantConfiguration.buildType.name
+            if(buildType == "beta"){
+                project = APP_NAME_BETA
+            }
+            if(buildType == "debug"){
+                project = APP_NAME_DEBUG
+            }
+            def SEP = "-"
+            def version = variant.versionName
+            def newApkName = project + SEP + version + ".apk"
+            outputFileName = new File("../../../../../../build/", newApkName)
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:multidex:1.0.3'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    annotationProcessor project(':processor')
+    implementation project(':processor')
+}
